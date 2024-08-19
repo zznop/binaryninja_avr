@@ -159,8 +159,7 @@ class AVR(binaryninja.Architecture):
                     addr
                 )
             )
-            nfo.length = 2
-            return nfo
+            return None
 
         nfo.length = ins.length()
 
@@ -394,10 +393,13 @@ class AVRBinaryView(binaryninja.BinaryView):
 
         # Create ISR once the analysis has finished
         def _create_isr(event):
-            return
             bv = event.view
             for i, v in enumerate(AVR.chip.INTERRUPT_VECTORS):
                 isr_addr = i * AVR.chip.INTERRUPT_VECTOR_SIZE
+                if isr_addr > AVR.chip.ROM_SIZE:
+                    binaryninja.log.log_warn(f"ISR address out of bounds for ISR#{i} (0x{isr_addr:04x})")
+                    continue
+
                 if not self.get_function_at(isr_addr):
                     bv.add_function(isr_addr)
 
