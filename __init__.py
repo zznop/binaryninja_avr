@@ -17,9 +17,9 @@ from .chips.iotn48 import IOTn48
 from .chips.iotn88 import IOTn88
 from .chips.iox128a4u import IOX128A4U
 ALL_CHIPS = [
+    IOM328,
     IOM16,
     IOM168,
-    IOM328,
     IOTn48,
     IOTn88,
     IOX128A4U,
@@ -35,7 +35,7 @@ from binaryninja import (
 
 class AVR(binaryninja.Architecture):
     name = 'AVR'
-    address_size = 3
+    address_size = 2
     default_int_size = 1
     # Instructions can only be 4 bytes in length MAX. However we need to have
     # the next instruction as well for some lifting reason, this is why we chose
@@ -436,7 +436,10 @@ class AVRBinaryView(binaryninja.BinaryView):
 
     @classmethod
     def is_valid_for_data(self, data):
-        return True
+        if list(data.search("CAN init fail, retry...")):
+            return True
+
+        return False
 
     @classmethod
     def get_load_settings_for_data(cls, data):
