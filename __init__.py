@@ -69,6 +69,7 @@ class AVR(binaryninja.Architecture):
         'r19': binaryninja.RegisterInfo('r19', 1),
         'r20': binaryninja.RegisterInfo('r20', 1),
         'r21': binaryninja.RegisterInfo('r21', 1),
+
         'r22': binaryninja.RegisterInfo('r22', 1),
         'r23': binaryninja.RegisterInfo('r23', 1),
         'r24': binaryninja.RegisterInfo('r24', 1),
@@ -149,20 +150,16 @@ class AVR(binaryninja.Architecture):
     def get_instruction_info(self, data, addr):
         nfo = binaryninja.InstructionInfo()
         ins = self._get_instruction(data, addr)
-        if not ins:
-            # Failsafe: Assume 2 bytes if we couldn't decode the instruction.
-            # This should only happen if this is indeed an incorrect instruction
-            # but for some reason BN tries to disassemble random data sometimes
-            # and will show warnings if nfo.length == 0.
+        if not ins or ins.length() == 0:
             binaryninja.log.log_warn(
                 "Could not parse instruction @ 0x{:X}".format(
                     addr
                 )
             )
+
             return None
 
         nfo.length = ins.length()
-
         if self._is_conditional_branch(ins):
             v = addr + ins.operands[0].immediate_value
             if v >= AVR.chip.ROM_SIZE:
