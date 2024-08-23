@@ -159,6 +159,7 @@ class AVR(binaryninja.Architecture):
 
             return None
 
+
         nfo.length = ins.length()
         if self._is_conditional_branch(ins):
             v = addr + ins.operands[0].immediate_value
@@ -270,7 +271,7 @@ class AVR(binaryninja.Architecture):
                 )
             )
             il.append(il.no_ret())
-            return 0
+            return None
 
     def is_never_branch_patch_available(self, data, addr):
         ins = self._get_instruction(data, addr)
@@ -301,8 +302,10 @@ class AVR(binaryninja.Architecture):
 
 class DefaultCallingConvention(binaryninja.CallingConvention):
     name = 'default'
-    int_arg_regs = ['r22', 'r23', 'r24', 'r25']
-    int_return_reg = 'r30'
+    int_arg_regs = ['r25', 'r24', 'r23', 'r22', 'r21', 'r20', 'r19', 'r18', 'r17', 'r16', 'r15', 'r14', 'r13', 'r12', 'r11', 'r10', 'r9', 'r8']
+    callee_saved_regs = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'r16', 'r17', 'r28', 'r29']
+    caller_saved_regs = ['r18', 'r19', 'r20', 'r21', 'r22', 'r23', 'r24', 'r25', 'r26', 'r27', 'r30', 'r31']
+    int_return_reg = 'r24'
     high_int_return_reg = 'r31'
 
 
