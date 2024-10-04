@@ -17,11 +17,11 @@ from .chips.iotn48 import IOTn48
 from .chips.iotn88 import IOTn88
 from .chips.iox128a4u import IOX128A4U
 ALL_CHIPS = [
+    IOTn88,
     IOM328,
     IOM16,
     IOM168,
     IOTn48,
-    IOTn88,
     IOX128A4U,
 ]
 
@@ -213,6 +213,8 @@ class AVR(binaryninja.Architecture):
             nfo.add_branch(BranchType.FunctionReturn)
         elif (isinstance(ins, instructions.Instruction_RCALL)):
             v = addr + ins.operands[0].immediate_value
+            if v == (addr + 2):
+                return nfo
             if v >= AVR.chip.ROM_SIZE:
                 v -= AVR.chip.ROM_SIZE
             elif v < 0:
@@ -233,9 +235,7 @@ class AVR(binaryninja.Architecture):
                 BranchType.UnconditionalBranch,
                 v
             )
-        elif (isinstance(ins, instructions.Instruction_ICALL) or
-                isinstance(ins, instructions.Instruction_EICALL) or
-                isinstance(ins, instructions.Instruction_IJMP) or
+        elif (isinstance(ins, instructions.Instruction_IJMP) or
                 isinstance(ins, instructions.Instruction_EIJMP)):
             nfo.add_branch(BranchType.IndirectBranch)
         else:
@@ -306,7 +306,7 @@ class DefaultCallingConvention(binaryninja.CallingConvention):
     callee_saved_regs = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'r16', 'r17', 'r28', 'r29']
     caller_saved_regs = ['r18', 'r19', 'r20', 'r21', 'r22', 'r23', 'r24', 'r25', 'r26', 'r27', 'r30', 'r31']
     int_return_reg = 'r24'
-    high_int_return_reg = 'r31'
+    high_int_return_reg = 'r25'
 
 
 class AVRBinaryView(binaryninja.BinaryView):
@@ -331,9 +331,10 @@ class AVRBinaryView(binaryninja.BinaryView):
         chip = [c for c in ALL_CHIPS if chip_id == c.identifier()]
 
         if len(chip) != 1:
-            binaryninja.log.log_error("AVR: No chip selected")
-            return False
-        chip = chip[0]
+            binaryninja.log.log_error("AVR: No chip selected, using default IOTn88")
+            chip = IOTn88
+        else:
+            chip = chip[0]
 
         # Setting this somewhat globally.
         # TODO: Figure out if there is a way to have separate instances for each
@@ -436,7 +437,7 @@ class AVRBinaryView(binaryninja.BinaryView):
 
     @classmethod
     def is_valid_for_data(self, data):
-        if list(data.search("CAN init fail, retry...")):
+        if list(data.search("SHARPEE Smart Battery")):
             return True
 
         return False
