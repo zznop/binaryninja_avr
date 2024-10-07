@@ -17,11 +17,11 @@ from .chips.iotn48 import IOTn48
 from .chips.iotn88 import IOTn88
 from .chips.iox128a4u import IOX128A4U
 ALL_CHIPS = [
-    IOTn88,
-    IOM328,
     IOM16,
     IOM168,
+    IOM328,
     IOTn48,
+    IOTn88,
     IOX128A4U,
 ]
 
@@ -331,10 +331,9 @@ class AVRBinaryView(binaryninja.BinaryView):
         chip = [c for c in ALL_CHIPS if chip_id == c.identifier()]
 
         if len(chip) != 1:
-            binaryninja.log.log_error("AVR: No chip selected, using default IOTn88")
-            chip = IOTn88
-        else:
-            chip = chip[0]
+            binaryninja.log.log_error("AVR: No chip selected")
+            return False
+        chip = chip[0]
 
         # Setting this somewhat globally.
         # TODO: Figure out if there is a way to have separate instances for each
@@ -437,10 +436,11 @@ class AVRBinaryView(binaryninja.BinaryView):
 
     @classmethod
     def is_valid_for_data(self, data):
-        if list(data.search("SHARPEE Smart Battery")):
-            return True
+        return False  # Must be force loaded with "Open with Options"
 
-        return False
+    @classmethod
+    def is_force_loadable(self):
+        return True
 
     @classmethod
     def get_load_settings_for_data(cls, data):
